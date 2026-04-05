@@ -284,7 +284,10 @@
                 <div class="score-info">
                     <div class="score-header">
                         <h2>신뢰도 평가 결과</h2>
-                        <span id="reliabilityBadge" class="reliability-badge">판단 중...</span>
+                        <div>
+                            <span id="categoryBadge" class="reliability-badge" style="background: rgba(167, 139, 250, 0.2); color: #a78bfa; border: 1px solid #a78bfa; margin-right: 10px; display: none;">대기 중</span>
+                            <span id="reliabilityBadge" class="reliability-badge">판단 중...</span>
+                        </div>
                     </div>
                     <!-- 신뢰도 퍼센트 게이지 바 -->
                     <div class="gauge-container">
@@ -294,6 +297,11 @@
             </div>
 
             <div class="sections">
+                <div class="section-box" id="reasonsSection" style="display: none; border-color: rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.05);">
+                    <h3 style="color: #60a5fa;">📝 신뢰도 판별 근거</h3>
+                    <ul id="reasonsList" class="text-content" style="padding-left: 20px; margin: 0;"></ul>
+                </div>
+
                 <div class="section-box">
                     <h3>팩트 체크 필요 문장</h3>
                     <div id="factCheckList"></div>
@@ -336,6 +344,11 @@
                 
                 const data = await response.json();
                 
+                // Set Category Badge
+                const catBadge = document.getElementById('categoryBadge');
+                catBadge.innerText = `🏷️ ${data.category}`;
+                catBadge.style.display = 'inline-block';
+
                 // Set Reliability Badge
                 const isRel = data.is_reliable;
                 const badge = document.getElementById('reliabilityBadge');
@@ -358,6 +371,20 @@
                     });
                 }
                 document.getElementById('highlightedText').innerHTML = highlightedText;
+
+                // Make Reasons List
+                const reasonsList = document.getElementById('reasonsList');
+                const reasonsSection = document.getElementById('reasonsSection');
+                reasonsList.innerHTML = '';
+                if (data.credibility_reasons && data.credibility_reasons.length > 0) {
+                    data.credibility_reasons.forEach(reason => {
+                        const li = document.createElement('li');
+                        li.innerText = reason;
+                        li.style.marginBottom = '8px';
+                        reasonsList.appendChild(li);
+                    });
+                    reasonsSection.style.display = 'block';
+                }
 
                 // Make Fact Check List
                 const factList = document.getElementById('factCheckList');

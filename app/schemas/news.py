@@ -9,3 +9,5 @@ class AnalyzeResponse(BaseModel):
     reliability_score: float = Field(..., description="신뢰도 점수 (0 ~ 100%)")
     suspicious_words: List[str] = Field(..., description="하이라이트 처리가 필요한 의심스러운/자극적인 단어 리스트")
     fact_check_sentences: List[str] = Field(..., description="의도나 주장이 강하게 들어가 팩트체크가 필요한 문장 리스트")
+    category: str = Field(..., description="뉴스 기사 카테고리 (정치, 경제 등)")
+    credibility_reasons: List[str] = Field(..., description="신뢰도 점수 판별 근거(이유) 리스트")
