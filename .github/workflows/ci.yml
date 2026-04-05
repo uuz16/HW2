@@ -28,7 +28,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           username: uuz16
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          password: ${{ secrets.DOCKERHUB_TOKEN_NEW }}
 
       # 이미지 태그를 위해 commit SHA의 짧은 해시값을 가져옵니다.
       - name: Extract short commit SHA
