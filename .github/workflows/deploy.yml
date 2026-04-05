@@ -14,17 +14,12 @@ jobs:
         run: docker pull uuz16/news_analyzer:latest
 
       - name: Stop existing container
-        run: |
-          docker stop news-container
+        run: docker stop news-container
         continue-on-error: true
 
       - name: Remove existing container
-        run: |
-          docker rm news-container
+        run: docker rm news-container
         continue-on-error: true
 
       - name: Run new container
-        run: |
-          docker run -d -p 8000:8000 `
-          --name news-container `
-          uuz16/news_analyzer:latest
+        run: docker run -d -p 8000:8000 --name news-container uuz16/news_analyzer:latest
