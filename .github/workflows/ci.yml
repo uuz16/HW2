@@ -27,7 +27,7 @@ jobs:
         # GitHub Secrets에 등록한 DOCKERHUB_USERNAME, DOCKERHUB_TOKEN을 사용해 로그인합니다.
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: uuz16
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # 이미지 태그를 위해 commit SHA의 짧은 해시값을 가져옵니다.
@@ -43,8 +43,8 @@ jobs:
           # 다만 현재 레포지토리 구조상 news_analyzer가 루트에 있다면 context: . 가 맞습니다.
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }}
+            uuz16/${{ env.IMAGE_NAME }}:latest
+            uuz16/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }}
           # Docker 빌드 속도 향상을 위한 캐시 활용 패턴입니다.
-          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+          cache-from: type=registry,ref=uuz16/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=uuz16/${{ env.IMAGE_NAME }}:buildcache,mode=max
