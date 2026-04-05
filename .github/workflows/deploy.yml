@@ -1,0 +1,26 @@
+name: Deploy to Local Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Pull latest Docker image
+        run: docker pull uuz16/news_analyzer:latest
+
+      - name: Stop existing container
+        run: docker stop news-container || true
+
+      - name: Remove existing container
+        run: docker rm news-container || true
+
+      - name: Run new container
+        run: |
+          docker run -d -p 8000:8000 \
+          --name news-container \
+          uuz16/news_analyzer:latest
