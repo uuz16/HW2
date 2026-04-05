@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 가상환경
+venv/
+.venv/
+env/
+.env
+.pytest_cache/
+
+# Git 관련
+.git/
+.github/
+.gitignore
+
+# Docker 관련
+Dockerfile
+.dockerignore

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Reliability Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --container-bg: rgba(30, 41, 59, 0.7);
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger: #ef4444;
+            --success: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 40px auto;
+            background: var(--container-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: all 0.4s ease;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-align: center;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text-main);
+            font-size: 1rem;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loading span.btn-text {
+            display: none;
+        }
+        .loading .spinner {
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results Section */
+        .results {
+            margin-top: 40px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .score-card {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .score-info {
+            width: 100%;
+        }
+
+        .score-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .score-info h2 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .reliability-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .reliable { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+        .unreliable { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+
+        .gauge-container {
+            width: 100%;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gauge-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 15px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 15px;
+            box-sizing: border-box;
+            color: white;
+            font-weight: 800;
+            font-size: 1.1rem;
+            text-shadow: 0px 1px 3px rgba(0,0,0,0.6);
+        }
+
+        .sections {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .section-box {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .section-box h3 {
+            margin-top: 0;
+            color: #a78bfa;
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+        }
+
+        .text-content {
+            line-height: 1.6;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+        }
+
+        .highlight-suspicious {
+            background-color: var(--danger);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 800;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+        }
+
+        .fact-sentence {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border-radius: 0 8px 8px 0;
+            color: #d1d5db;
+        }
+
+        .error-msg {
+            color: var(--danger);
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>News Analyzer</h1>
+        <p class="subtitle">AI 기반 뉴스 신뢰도 평가 결과 대시보드</p>
+        
+        <div class="input-group">
+            <textarea id="newsInput" placeholder="분석할 뉴스 기사를 여기에 붙여넣어주세요..."></textarea>
+            <button id="analyzeBtn">
+                <span class="btn-text">뉴스 분석 실행하기</span>
+                <div class="spinner"></div>
+            </button>
+            <div id="errorMsg" class="error-msg">오류가 발생했습니다. 잠시 후 다시 시도해주세요.</div>
+        </div>
+
+        <div id="results" class="results">
+            <div class="score-card">
+                <div class="score-info">
+                    <div class="score-header">
+                        <h2>신뢰도 평가 결과</h2>
+                        <span id="reliabilityBadge" class="reliability-badge">판단 중...</span>
+                    </div>
+                    <!-- 신뢰도 퍼센트 게이지 바 -->
+                    <div class="gauge-container">
+                        <div id="gaugeBar" class="gauge-fill">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sections">
+                <div class="section-box">
+                    <h3>팩트 체크 필요 문장</h3>
+                    <div id="factCheckList"></div>
+                </div>
+
+                <div class="section-box">
+                    <h3>본문 분석 결과 (의심 단어 하이라이트)</h3>
+                    <div id="highlightedText" class="text-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('analyzeBtn').addEventListener('click', async () => {
+            const text = document.getElementById('newsInput').value;
+            const btn = document.getElementById('analyzeBtn');
+            const resultsDiv = document.getElementById('results');
+            const errorMsg = document.getElementById('errorMsg');
+            
+            if (!text.trim()) {
+                alert('뉴스 텍스트를 입력해주세요.');
+                return;
+            }
+
+            // Start Loading state
+            btn.classList.add('loading');
+            btn.disabled = true;
+            resultsDiv.style.display = 'none';
+            errorMsg.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                if (!response.ok) throw new Error('Network response error');
+                
+                const data = await response.json();
+                
+                // Set Reliability Badge
+                const isRel = data.is_reliable;
+                const badge = document.getElementById('reliabilityBadge');
+                badge.innerText = isRel ? '✅ 신뢰할 수 있는 기사' : '⚠️ 주의 요망 (가짜뉴스 의심)';
+                badge.className = `reliability-badge ${isRel ? 'reliable' : 'unreliable'}`;
+                
+                // Update Gauge Bar
+                const color = isRel ? 'var(--success)' : 'var(--danger)';
+                const gaugeBar = document.getElementById('gaugeBar');
+                gaugeBar.style.width = `${data.reliability_score}%`;
+                gaugeBar.style.background = `linear-gradient(90deg, ${color}99, ${color})`;
+                gaugeBar.innerText = `${data.reliability_score}%`;
+
+                // Highlight Words using exact replace
+                let highlightedText = escapeHtml(text);
+                if(data.suspicious_words.length > 0) {
+                    data.suspicious_words.forEach(word => {
+                        const regex = new RegExp(escapeHtml(word), 'gi');
+                        highlightedText = highlightedText.replace(regex, `<span class="highlight-suspicious">$&</span>`);
+                    });
+                }
+                document.getElementById('highlightedText').innerHTML = highlightedText;
+
+                // Make Fact Check List
+                const factList = document.getElementById('factCheckList');
+                factList.innerHTML = '';
+                if (data.fact_check_sentences.length === 0) {
+                    factList.innerHTML = '<p style="color:var(--text-muted)">특별히 팩트 체크가 요구되는 강한 주장이 없습니다.</p>';
+                } else {
+                    data.fact_check_sentences.forEach(sentence => {
+                        const div = document.createElement('div');
+                        div.className = 'fact-sentence';
+                        div.innerText = sentence;
+                        factList.appendChild(div);
+                    });
+                }
+
+                // Show Results
+                resultsDiv.style.display = 'block';
+
+            } catch (err) {
+                console.error(err);
+                errorMsg.style.display = 'block';
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        });
+
+        // Basic XSS Protection for Injection
+        function escapeHtml(unsafe) {
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

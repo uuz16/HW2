@@ -1,0 +1,50 @@
+name: CI/CD to Docker Hub
+
+# main 브랜치나 master 브랜치에 코드가 push 되거나 PR이 머지될 때 실행됩니다.
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+env:
+  # 빌드될 Docker 이미지의 이름을 설정합니다.
+  IMAGE_NAME: news_analyzer
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Docker 캐시와 멀티플랫폼 빌드를 위한 Buildx 설정
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        # GitHub Secrets에 등록한 DOCKERHUB_USERNAME, DOCKERHUB_TOKEN을 사용해 로그인합니다.
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 이미지 태그를 위해 commit SHA의 짧은 해시값을 가져옵니다.
+      - name: Extract short commit SHA
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          # Dockerfile이 repo root 기준의 news_analyzer 폴더 안에 있다면 context: ./news_analyzer 로 수정이 필요할 수 있습니다.
+          # 다만 현재 레포지토리 구조상 news_analyzer가 루트에 있다면 context: . 가 맞습니다.
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }}
+          # Docker 빌드 속도 향상을 위한 캐시 활용 패턴입니다.
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
